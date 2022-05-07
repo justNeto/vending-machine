@@ -204,6 +204,7 @@
 		(cln)
 		(define READ_MONEY (open-input-file (build-path (current-directory) "db" "money-deposit")))
 		(set! deposit (read READ_MONEY))
+		(set! deposit (set-bubble deposit))
 		(cln)
 	  ]
   	  [(file-exists? (build-path (current-directory) "db" "money-deposit"))
@@ -212,6 +213,7 @@
 		(cln)
 		(define READ_MONEY (open-input-file (build-path (current-directory) "db" "money-deposit")))
 		(set! deposit (read READ_MONEY))
+		(set! deposit (set-bubble deposit))
 		(cln)
 	  ]
 	)
@@ -225,6 +227,7 @@
 		(cln)
 		(define READ_MONEY (open-input-file (build-path (current-directory) dep)))
 		(set! deposit (read READ_MONEY))
+		(set! deposit (set-bubble deposit))
 		(cln)
        ]
        [(and (file-exists? (build-path (current-directory) dep)) (file-exists? (build-path (current-directory) "db" "money-deposit")) )
@@ -234,6 +237,7 @@
 		(destroy-money-deposit)
 		(define READ_MONEY (open-input-file (build-path (current-directory) dep)))
 		(set! deposit (read READ_MONEY))
+		(set! deposit (set-bubble deposit))
 		(cln)
        ]
        [else (cln) "::-- [Error. File does not exists]"]
@@ -341,6 +345,30 @@
      )
     ]
   )
+)
+
+(define (bubble lts)
+  (if (null? (cdr lts))
+      lts
+      (if (> (car (car lts)) (car (cadr lts)))
+          (cons (car lts)
+                (bubble (cdr lts)))
+          (cons (cadr lts)
+                (bubble (cons (car lts) (cddr lts))))
+      )
+  )
+)
+
+
+(define (bubble-sort N lts)
+  (cond
+        [(= N 1) (bubble lts)]
+        [else (bubble-sort (- N 1) (bubble lts))]
+  )
+)
+
+(define (set-bubble lts)
+  (bubble-sort (length lts) lts)
 )
 
 ;; Execution of setup: creates inventory

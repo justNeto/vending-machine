@@ -14,22 +14,12 @@
 ;   transactions
 ; )
 
-; ;; [start-transaction] of a single transaction file
-; (define (start-transaction inventory transaction)
-;   ;; get product in inventory and confirm it exist
-;   (cond
-; 	[(product-exist? inventory transaction) "::--[Transacction completed]" ] ;; executes the transaction
-; 	[else "::--[Transaction went wrong]"]
-;   )
-; )
-
-
 ;; [start-transaction] of a single transaction file
 (define (start-transaction inventory transaction)
   ;; get product in inventory and confirm it exist
   (cond
-	[(product-exist? inventory transaction) #t ] ;; executes the transaction
-	[else #f]
+	[(product-exist? inventory transaction)"::--[Transacction completed]" ] ;; executes the transaction
+	[else "::--[Transaction went wrong]"]
   )
 )
 
@@ -37,7 +27,7 @@
 ;; if product-name exist then return true
 (define (product-exist? inventory transaction)
   (cond
-    ;; if inventory null then all inventory checked, if compute-transaction is false then the transaction is not valid, so returns false
+    ;; if inventory null then all inventory checked and product does not exist
     [(null? inventory) #f]
     [(and (equal? (caar inventory) (car transaction)) (compute-transaction (car inventory) transaction)) #t ]
     [else (product-exist? (cdr inventory) transaction) ]
@@ -100,9 +90,12 @@
     ;; debt is input - cost what the machine owes to the user
     ;; debt = (- current-state final-state)
     (define debt (- current-state final-state))
+    ;; (backup-everything) makes a security copy of everything (inventory and deposit)
+    (update-everything final-state) ;; adds the actual money added by the user after the security copy
+
 
   (cond
-    [(= debt 0) (final-update-everything) ] ;; [updates the money and inventory db]
+    [(= debt 0) (update-everything final-state) ] ;; [updates the money and inventory db]
 
     ;; caar money-deposit is coin value to update in db
     ;; cadar money-deposit is existance
@@ -121,23 +114,11 @@
   inventory
 )
 
-(define (update-everything) ;; update everything will use the transactions completed
+(define (update-everything)
   inventory
 )
-
-(define (make-security-copies file)
-  "a"
-)
-
-(define (delete-security-copies file)
-  "a"
-)
-
-(define (recover-security-copies file)
-  "a"
-)
-
 ;; start of the runtime code
+;; HERE THE PROGRgM STARTS
 
 ; transaction
 ; (cln)
@@ -146,19 +127,13 @@
 ; deposit
 ; (cln)
 
+;; Creating copies
+;; Run the code. If transaction fails, return copy and say transaction failed
+
 ;; [|----- TESTING AREA -----| ]
 
 ; (start-transaction inventory transaction)
 ; (product-exist? inventory transaction) ;; WORKING CORRECTLY
 ; (compute-transaction (car inventory) transaction)
 
-(make-security-copies)
-
-(cond
-  [(start-transaction inventory transaction) "::--[Transacction completed]"
-	(delete-security-copies)
-  ]
-  [else (recover-security-copies)]
-)
-
-; (fare-automata 10 deposit)
+(fare-automata 10 deposit)
