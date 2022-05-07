@@ -45,13 +45,15 @@
 )
 
 ;; [compute-transaction] validates the transaction and updates de db
-;; Getting money in
 (define (compute-transaction inventory transaction)
   ;; (cadr transaction) is the list of transitions form '(1 1 2 5 10 20 50)
   ;; (cadr inventory) is the price form '("product-name" price quantity) : ("gansitos" 17 2)
 
+  ;; checks-currency
+   ;; if check-currency true continue else return false as transaction will not happen
+
   (cond
-    [(and (check-currency-in (cadr transaction)) (validate (cadr transaction) (cadr inventory) 0)) #t ]
+    [(and (validate (cadr transaction) (cadr inventory) 0) (check-currency (cadr transaction)) ) #t ]
     [else #f]
   )
 
@@ -76,73 +78,92 @@
     ;; For example, if a product costs 50 and user gave 55, then the machine must return 5 (input - cost)
 
     ;; [[[[[[[[[[[---------- Update happens here in function that returns true ----------]]]]]]]]
-    [(> current-state final-state) (fare-automata deposit (- current-state final-state)) ] ;; starts change automata and updates stuff
-    ; [(> current-state final-state) (fare-automata current-state final-state) ] ;; starts change automata and updates stuff
+    [(> current-state final-state) (fare-automata current-state final-state) ] ;; starts change automata and updates stuff
 
     [(< current-state final-state) #f ] ;; transaction does not buy a product and db's not updated
   )
 )
 
-(define (check-currency-in transactions)
+(define (check-currency transactions)
   (cond
     [(null? transactions) #t]
-    [(= (car transactions) 1)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 2)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 5)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 10) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 20) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 50) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
+    [(= (car transactions) 1) (check-currency (cdr transactions))  ]
+    [(= (car transactions) 2) (check-currency (cdr transactions))  ]
+    [(= (car transactions) 5) (check-currency (cdr transactions))  ]
+    [(= (car transactions) 10) (check-currency (cdr transactions)) ]
+    [(= (car transactions) 20) (check-currency (cdr transactions)) ]
+    [(= (car transactions) 50) (check-currency (cdr transactions)) ]
     [else #f]
   )
 )
 
-;; Algorithm to check the best
-(define (return-coin coin)
-  (update-money coin -1)
-)
-
-(define (fare-automata deposit debt) ;; in this automata the deposit has to be checked to decide what to return
-  ;; debt is input - cost what the machine owes to the user
-  ;; debt = (- current-state final-state)
+(define (fare-automata current-state final-state) ;; in this automata the deposit has to be checked to decide what to return
+    ;; debt is input - cost what the machine owes to the user
+    ;; debt = (- current-state final-state)
+    (define debt (- current-state final-state))
 
   (cond
-    [(= debt 0) #t ] ;; [updates the money and inventory db]
+    [(= debt 0) (update-everything-fare) ] ;; [updates the money and inventory db]
+
     ;; caar money-deposit is coin value to update in db
     ;; cadar money-deposit is existance
 
-    ;; If debt > 0 then select the first coin that is less or equal to deb
-    ;; insert the coin
-    [(> debt 0)
-     (cond
-       [(or (and (< (caar deposit) debt) (> (cadar deposit) 0)) (and (= (caar deposit) debt) (> (cadar deposit) 0))) (return-coin (caar deposit)) (fare-automata (cdr deposit) (- debt (caar deposit))) ]
-       [else (fare-automata (cdr deposit) debt)]
-     )
-    ]
+    ;; If inside automata then update-money decreases the money from the deposit
+    [(and (< (caar deposit) debt) (> (cadar deposit) 0)) (fare-automata current-state final-state ) ]
+
     [else #f] ;; does not update and returns the security-data to the document
   )
 )
 
+
 ;; Any update function should has access to global variables inventory, transactions and deposit to update the info. input data will be data to change inside the update functions. Update writes and reads data from the system.
 
+(define (update-money list-to-alter value ) ;
+  inventory
+)
+
+(define (update-everything) ;; update everything will use the transactions completed
+  inventory
+)
+
+(define (update-everything-fare file)
+  "a"
+)
+
+(define (make-security-copies file)
+  "a"
+)
+
+(define (delete-security-copies file)
+  "a"
+)
+
+(define (recover-security-copies file)
+  "a"
+)
 
 ;; start of the runtime code
 
-transaction
-(cln)
-inventory
-(cln)
-deposit
-(cln)
+; transaction
+; (cln)
+; inventory
+; (cln)
+; deposit
+; (cln)
 
 ;; [|----- TESTING AREA -----| ]
 
+; (start-transaction inventory transaction)
+; (product-exist? inventory transaction) ;; WORKING CORRECTLY
+; (compute-transaction (car inventory) transaction)
+
+(make-security-copies)
+
 (cond
-  [(start-transaction inventory transaction) "::--[Transaction completed]"]
-  [else "::--[Transaction incompleted]"]
+  [(start-transaction inventory transaction) "::--[Transacction completed]"
+	(delete-security-copies)
+  ]
+  [else (recover-security-copies)]
 )
 
-
-inventory
-(cln)
-deposit
-(cln)
+; (fare-automata 10 deposit)

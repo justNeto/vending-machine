@@ -3,6 +3,8 @@
 
 ;; Provided packages to any other scripts
 (provide cln)
+(provide update-money)
+
 (provide inventory)
 (provide deposit)
 (provide transaction)
@@ -93,6 +95,19 @@
 	TRANSACTIONS_INVENTORY
 	)
 	(close-output-port TRANSACTIONS_INVENTORY)
+)
+
+
+(define (update-money index value)
+  (set! deposit (reconstruct deposit index value))
+)
+
+(define (reconstruct datos index value)
+    (cond
+     [(null? datos) '()]
+     [(eq? index (caar datos)) (append (list (list (caar datos) (+ (cadar datos) value))) (cdr datos))]
+     [else (append (list (car datos)) (reconstruct (cdr datos) index value)) ]
+    )
 )
 
 (define (destroy-product-list)
