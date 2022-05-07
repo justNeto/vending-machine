@@ -17,8 +17,7 @@
 ; ;; [start-transaction] of a single transaction file
 ; (define (start-transaction inventory transaction)
 ;   ;; get product in inventory and confirm it exist
-;   (cond
-; 	[(product-exist? inventory transaction) "::--[Transacction completed]" ] ;; executes the transaction
+;   (cond [(product-exist? inventory transaction) "::--[Transacction completed]" ] ;; executes the transaction
 ; 	[else "::--[Transaction went wrong]"]
 ;   )
 ; )
@@ -55,9 +54,6 @@
     [else #f]
   )
 
-  ; (cadr transaction)
-  ; (cadr inventory)
-  ; (validate (cadr transaction) (cadr inventory) 0)
 )
 
 ;; HERE DATA SHOULD BE UPDATED
@@ -96,11 +92,6 @@
   )
 )
 
-;; Algorithm to check the best
-(define (return-coin coin)
-  (update-money coin -1)
-)
-
 (define (fare-automata deposit debt) ;; in this automata the deposit has to be checked to decide what to return
   ;; debt is input - cost what the machine owes to the user
   ;; debt = (- current-state final-state)
@@ -122,8 +113,31 @@
   )
 )
 
-;; Any update function should has access to global variables inventory, transactions and deposit to update the info. input data will be data to change inside the update functions. Update writes and reads data from the system.
+;; Return the coint to user. I.E erase coin from deposit
+(define (return-coin coin)
+  (update-money coin -1)
+)
 
+;; The down functions will be in helper.rkt
+(define (make-copy-inventory)
+  "a"
+)
+
+(define (make-copy-deposit)
+  "b"
+)
+
+(define (write-files-db)
+  "c"
+)
+
+(define (retrieve-copies)
+  "d"
+)
+
+;; Update inventory according to the transaction result.
+
+;; Any update function should has access to global variables inventory, transactions and deposit to update the info. input data will be data to change inside the update functions. Update writes and reads data from the system.
 
 ;; start of the runtime code
 
@@ -134,13 +148,22 @@ inventory
 deposit
 (cln)
 
-;; [|----- TESTING AREA -----| ]
+;; If transaction happened then return true. Else false. If true, save the data. If not true, retrieve the saved data
+
+(make-copy-inventory)
+(make-copy-deposit)
 
 (cond
-  [(start-transaction inventory transaction) "::--[Transaction completed]"]
-  [else "::--[Transaction incompleted]"]
+  [(start-transaction inventory transaction) "::--[Transaction completed]" (write-files-db) ]
+  [else "::--[Transaction incompleted]" (retrieve-copies) ]
 )
 
+; (cond
+;   [(start-transaction inventory transaction) "::--[Transaction completed]"]
+;   [else "::--[Transaction incompleted]"]
+; )
+
+"After transaction"
 
 inventory
 (cln)
