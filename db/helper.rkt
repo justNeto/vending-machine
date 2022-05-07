@@ -4,17 +4,25 @@
 ;; Provided packages to any other scripts
 (provide cln)
 (provide update-money)
+(provide make-copy-deposit)
+(provide make-copy-inventory)
+(provide write-files-db)
+(provide retrieve-copies)
 
 (provide inventory)
 (provide deposit)
 (provide transaction)
 (provide transactions)
+(provide path-to-inventory)
+(provide path-to-deposit)
 
 ;; Define global variables and parameters
 (define inventory null)
 (define deposit null)
 (define transaction null)
 (define transactions null)
+(define path-to-inventory null)
+(define path-to-deposit null)
 
 ;; Define parameters for command-line parser
 (define set-inventory (make-parameter #false))
@@ -131,7 +139,7 @@
   (command-line
     #:program "vending machine"
 
-    #:usage-help "Simulation of a vending machine. If ran"
+    #:usage-help "Simulation of a vending machine. If ran without flags it will generate a set of automatic data to test the machine."
 
     #:once-each
     [("-i" "--inventory") INVENTORY
@@ -169,6 +177,7 @@
 		(cln)
 		(define READ_INVENTORY (open-input-file (build-path (current-directory) "db" "product-list")))
 		(set! inventory (read READ_INVENTORY))
+		(set! path-to-inventory (build-path (current-directory) "db" "product-list"))
 		(cln)
 	  ]
   	  [(file-exists? (build-path (current-directory) "db" "product-list"))
@@ -177,6 +186,7 @@
 		(cln)
 		(define READ_INVENTORY (open-input-file (build-path (current-directory) "db" "product-list")))
 		(set! inventory (read READ_INVENTORY))
+		(set! path-to-inventory (build-path (current-directory) "db" "product-list"))
 		(cln)
 	  ]
 	)
@@ -190,6 +200,7 @@
 		(cln)
 		(define READ_INVENTORY (open-input-file (build-path (current-directory) inv)))
 		(set! inventory (read READ_INVENTORY))
+		(set! path-to-inventory (build-path (current-directory) inv))
 		(cln)
        ]
        [(and (file-exists? (build-path (current-directory) inv)) (file-exists? (build-path (current-directory) "db" "product-list")) )
@@ -199,6 +210,7 @@
 		(destroy-product-list)
 		(define READ_INVENTORY (open-input-file (build-path (current-directory) inv)))
 		(set! inventory (read READ_INVENTORY))
+		(set! path-to-inventory (build-path (current-directory) inv))
 		(cln)
        ]
        [else (cln) "::-- [Error. File does not exists]"]
@@ -220,6 +232,7 @@
 		(define READ_MONEY (open-input-file (build-path (current-directory) "db" "money-deposit")))
 		(set! deposit (read READ_MONEY))
 		(set! deposit (set-bubble deposit))
+		(set! path-to-deposit (build-path (current-directory) "db" "money-deposit"))
 		(cln)
 	  ]
   	  [(file-exists? (build-path (current-directory) "db" "money-deposit"))
@@ -229,6 +242,7 @@
 		(define READ_MONEY (open-input-file (build-path (current-directory) "db" "money-deposit")))
 		(set! deposit (read READ_MONEY))
 		(set! deposit (set-bubble deposit))
+		(set! path-to-deposit (build-path (current-directory) "db" "money-deposit"))
 		(cln)
 	  ]
 	)
@@ -243,6 +257,7 @@
 		(define READ_MONEY (open-input-file (build-path (current-directory) dep)))
 		(set! deposit (read READ_MONEY))
 		(set! deposit (set-bubble deposit))
+		(set! path-to-deposit (build-path (current-directory) dep))
 		(cln)
        ]
        [(and (file-exists? (build-path (current-directory) dep)) (file-exists? (build-path (current-directory) "db" "money-deposit")) )
@@ -253,6 +268,7 @@
 		(define READ_MONEY (open-input-file (build-path (current-directory) dep)))
 		(set! deposit (read READ_MONEY))
 		(set! deposit (set-bubble deposit))
+		(set! path-to-deposit (build-path (current-directory) dep))
 		(cln)
        ]
        [else (cln) "::-- [Error. File does not exists]"]
@@ -360,6 +376,48 @@
      )
     ]
   )
+)
+
+;; The down functions will be in helper.rkt
+(define (make-copy-inventory)
+  (define INVENTORY_COPY (open-output-file (build-path (current-directory) "db" "tmp" "inventory-copy" )))
+	(
+ 	write inventory
+	INVENTORY_COPY
+	)
+	(close-output-port INVENTORY_COPY)
+)
+
+(define (make-copy-deposit)
+  (define DEPOSIT_COPY (open-output-file (build-path (current-directory) "db" "tmp" "deposit-copy" )))
+	(
+ 	write deposit
+	DEPOSIT_COPY
+	)
+	(close-output-port DEPOSIT_COPY)
+)
+
+(define (write-files-db)
+  (define UPDATE_INVENTORY (open-output-file path-to-inventory))
+	(
+ 	write inventory
+	UPDATE_INVENTORY
+	)
+	(close-output-port UPDATE_INVENTORY)
+
+  (define UPDATE_DEPOSIT (open-output-file path-to-deposit))
+	(
+ 	write deposit
+	UPDATE_DEPOSIT
+	)
+	(close-output-port UPDATE_DEPOSIT)
+)
+
+(define (retrieve-copies)
+  (delete-file path-to-deposit)
+  (delete-file path-to-inventory)
+  (rename-file-or-directory (build-path (current-directory) "db" "tmp" "inventory-copy" ) path-to-inventory)
+  (rename-file-or-directory (build-path (current-directory) "db" "tmp" "deposit-copy" ) path-to-deposit)
 )
 
 (define (bubble lts)

@@ -14,16 +14,6 @@
 ;   transactions
 ; )
 
-; ;; [start-transaction] of a single transaction file
-; (define (start-transaction inventory transaction)
-;   ;; get product in inventory and confirm it exist
-;   (cond [(product-exist? inventory transaction) "::--[Transacction completed]" ] ;; executes the transaction
-; 	[else "::--[Transaction went wrong]"]
-;   )
-; )
-
-
-;; [start-transaction] of a single transaction file
 (define (start-transaction inventory transaction)
   ;; get product in inventory and confirm it exist
   (cond
@@ -105,7 +95,8 @@
     ;; insert the coin
     [(> debt 0)
      (cond
-       [(or (and (< (caar deposit) debt) (> (cadar deposit) 0)) (and (= (caar deposit) debt) (> (cadar deposit) 0))) (return-coin (caar deposit)) (fare-automata (cdr deposit) (- debt (caar deposit))) ]
+       [(null? deposit) #f ]
+       [(or (and (< (caar deposit) debt) (> (cadar deposit) 0)) (and (= (caar deposit) debt) (> (cadar deposit) 0))) (return-coin (caar deposit)) (fare-automata deposit (- debt (caar deposit))) ]
        [else (fare-automata (cdr deposit) debt)]
      )
     ]
@@ -116,23 +107,6 @@
 ;; Return the coint to user. I.E erase coin from deposit
 (define (return-coin coin)
   (update-money coin -1)
-)
-
-;; The down functions will be in helper.rkt
-(define (make-copy-inventory)
-  "a"
-)
-
-(define (make-copy-deposit)
-  "b"
-)
-
-(define (write-files-db)
-  "c"
-)
-
-(define (retrieve-copies)
-  "d"
 )
 
 ;; Update inventory according to the transaction result.
@@ -150,21 +124,16 @@ deposit
 
 ;; If transaction happened then return true. Else false. If true, save the data. If not true, retrieve the saved data
 
-(make-copy-inventory)
-(make-copy-deposit)
-
-(cond
-  [(start-transaction inventory transaction) "::--[Transaction completed]" (write-files-db) ]
-  [else "::--[Transaction incompleted]" (retrieve-copies) ]
-)
+; (make-copy-inventory)
+; (make-copy-deposit)
 
 ; (cond
-;   [(start-transaction inventory transaction) "::--[Transaction completed]"]
-;   [else "::--[Transaction incompleted]"]
+;   [(start-transaction inventory transaction) (write-files-db) "::-[Transaction completed]"]
+;   [else (retrieve-copies) "::-[Transaction wrong]" ]
 ; )
+(start-transaction inventory transaction)
 
 "After transaction"
-
 inventory
 (cln)
 deposit
