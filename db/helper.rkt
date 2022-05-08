@@ -521,10 +521,14 @@
 )
 
 ;; Execution of setup: creates inventory
+"::- [ Set up initial data ] -::"
+(cln)
 (get-inventory (set-inventory))
 (get-deposit (set-deposit))
 (get-transaction (set-transaction))
 (get-transactions (set-transactions))
-
 (set-dep-path)
 (set-inv-path)
+
+"::- [ End setting up data ] -::"
+(cln)

@@ -114,28 +114,39 @@
 ;; Any update function should has access to global variables inventory, transactions and deposit to update the info. input data will be data to change inside the update functions. Update writes and reads data from the system.
 
 ;; start of the runtime code
-
-transaction
+"::----- { Start runtime data } -----::"
 (cln)
+" :: --- Before transaction "
+(cln)
+" :: - Inventory - :: "
 inventory
 (cln)
+" :: -  Deposit  - :: "
 deposit
+(cln)
+" :: -  Transaction  - :: "
+transaction
 (cln)
 
 ;; If transaction happened then return true. Else false. If true, save the data. If not true, retrieve the saved data
-
 (make-copy-inventory)
 (make-copy-deposit)
 
 ; (start-transaction inventory transaction)
 (cond
-  [(start-transaction inventory transaction) (write-files-db) "::-[Transaction completed]"]
-  [else (retrieve-copies) "::-[Transaction wrong]" ]
+  [(start-transaction inventory transaction) (write-files-db) "::- [ Transaction status: completed ]"]
+  [else (retrieve-copies) "::-a [ Transaction status: not completed ]" ]
 )
 ; (start-transaction inventory transaction)
 
-; "After transaction"
+(cln)
+" :: --- After transaction "
+(cln)
+" :: - Inventory - :: "
 inventory
 (cln)
+" :: -  Deposit  - :: "
 deposit
 (cln)
+
+"::----- { Stops runtime data } -----::"
