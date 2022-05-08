@@ -157,9 +157,16 @@
                      "File with a transaction. Format list: '( string::product (int::money int::money int::money ...) ) "
                      (set-transaction TRANSACTION)]
 
+
     [("-f" "--file-of-transactions") FILE-TRANSACTIONS
                      "File with a list of transactions. Format list: '( (transaction) (transaction) (...) ) "
                      (set-transactions FILE-TRANSACTIONS)]
+
+
+    [("-r" "--reset-inventory-deposit")
+     			"Deletes current path-to-inventory and path-to-deposit. Use with caution. Do not use if you are using custom files."
+                     (delete-inventory-deposit)]
+
 
     #:args () (void)
   )
@@ -378,8 +385,46 @@
   )
 )
 
+(define (read-paths)
+  (define PATH_TO_INVENTORY (open-input-file (build-path (current-directory) "db" "tmp" "inv-path")))
+  (set! path-to-inventory (string->path (read PATH_TO_INVENTORY)))
+  (define PATH_TO_DEPOSIT (open-input-file (build-path (current-directory) "db" "tmp" "dep-path")))
+  (set! path-to-deposit (string->path(read PATH_TO_DEPOSIT)))
+)
+
+(define (set-inv-path)
+  (cond
+    [(not (file-exists? (build-path (current-directory) "db" "tmp" "inv-path")))
+     (define PATH_INVENTORY (open-output-file (build-path (current-directory) "db" "tmp" "inv-path")))
+	(
+ 	write (path->string path-to-inventory)
+	PATH_INVENTORY
+	)
+	(close-output-port PATH_INVENTORY)
+    ]
+    [else "Inventory path already set"]
+  )
+)
+
+(define (set-dep-path)
+  (cond
+    [(not (file-exists? (build-path (current-directory) "db" "tmp" "dep-path")))
+     (define PATH_DEPOSIT (open-output-file (build-path (current-directory) "db" "tmp" "dep-path" )))
+	(
+ 	write (path->string path-to-deposit)
+	PATH_DEPOSIT
+	)
+	(close-output-port PATH_DEPOSIT)
+    ]
+    [else "Deposit path already set"]
+  )
+)
+
 ;; The down functions will be in helper.rkt
 (define (make-copy-inventory)
+  (cond
+    [(file-exists? (build-path (current-directory) "db" "tmp" "inventory-copy")) (delete-file (build-path (current-directory) "db" "tmp" "inventory-copy")) ]
+  )
   (define INVENTORY_COPY (open-output-file (build-path (current-directory) "db" "tmp" "inventory-copy" )))
 	(
  	write inventory
@@ -389,6 +434,9 @@
 )
 
 (define (make-copy-deposit)
+  (cond
+    [(file-exists? (build-path (current-directory) "db" "tmp" "deposit-copy")) (delete-file (build-path (current-directory) "db" "tmp" "deposit-copy")) ]
+  )
   (define DEPOSIT_COPY (open-output-file (build-path (current-directory) "db" "tmp" "deposit-copy" )))
 	(
  	write deposit
@@ -398,12 +446,22 @@
 )
 
 (define (write-files-db)
+  (read-paths)
+
+  (cond
+    [(file-exists? path-to-inventory) (delete-file path-to-inventory) ]
+  )
+
   (define UPDATE_INVENTORY (open-output-file path-to-inventory))
 	(
  	write inventory
 	UPDATE_INVENTORY
 	)
 	(close-output-port UPDATE_INVENTORY)
+
+  (cond
+    [(file-exists? path-to-deposit) (delete-file path-to-deposit) ]
+  )
 
   (define UPDATE_DEPOSIT (open-output-file path-to-deposit))
 	(
@@ -413,9 +471,28 @@
 	(close-output-port UPDATE_DEPOSIT)
 )
 
+(define (delete-inventory-deposit)
+  (read-paths)
+
+  (cond
+    [(file-exists? path-to-inventory) (delete-file path-to-inventory) ]
+  )
+
+  (cond
+    [(file-exists? path-to-deposit) (delete-file path-to-deposit) ]
+  )
+)
+
 (define (retrieve-copies)
-  (delete-file path-to-deposit)
-  (delete-file path-to-inventory)
+
+  (cond
+    [(file-exists? path-to-inventory) (delete-file path-to-inventory) ]
+  )
+
+  (cond
+    [(file-exists? path-to-deposit) (delete-file path-to-deposit) ]
+  )
+
   (rename-file-or-directory (build-path (current-directory) "db" "tmp" "inventory-copy" ) path-to-inventory)
   (rename-file-or-directory (build-path (current-directory) "db" "tmp" "deposit-copy" ) path-to-deposit)
 )
@@ -431,7 +508,6 @@
       )
   )
 )
-
 
 (define (bubble-sort N lts)
   (cond
@@ -449,3 +525,6 @@
 (get-deposit (set-deposit))
 (get-transaction (set-transaction))
 (get-transactions (set-transactions))
+
+(set-dep-path)
+(set-inv-path)

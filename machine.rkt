@@ -124,16 +124,17 @@ deposit
 
 ;; If transaction happened then return true. Else false. If true, save the data. If not true, retrieve the saved data
 
-; (make-copy-inventory)
-; (make-copy-deposit)
+(make-copy-inventory)
+(make-copy-deposit)
 
-; (cond
-;   [(start-transaction inventory transaction) (write-files-db) "::-[Transaction completed]"]
-;   [else (retrieve-copies) "::-[Transaction wrong]" ]
-; )
-(start-transaction inventory transaction)
+; (start-transaction inventory transaction)
+(cond
+  [(start-transaction inventory transaction) (write-files-db) "::-[Transaction completed]"]
+  [else (retrieve-copies) "::-[Transaction wrong]" ]
+)
+; (start-transaction inventory transaction)
 
-"After transaction"
+; "After transaction"
 inventory
 (cln)
 deposit
