@@ -4,6 +4,7 @@
 ;; Provided packages to any other scripts
 (provide cln)
 (provide update-money)
+(provide update-inventory)
 (provide make-copy-deposit)
 (provide make-copy-inventory)
 (provide write-files-db)
@@ -25,10 +26,11 @@
 (define path-to-deposit null)
 
 ;; Define parameters for command-line parser
-(define set-inventory (make-parameter #false))
-(define set-deposit (make-parameter #false))
-(define set-transaction (make-parameter #false))
-(define set-transactions (make-parameter #false))
+(define set-inventory (make-parameter #f))
+(define set-deposit (make-parameter #f))
+(define set-transaction (make-parameter #f))
+(define set-transactions (make-parameter #f))
+(define set-simulation (make-parameter #f))
 
 ;;
 ;; helper.rkt defines the initial data for the simulation of the machine and helper functions to be used through the rest of the program
@@ -45,7 +47,7 @@
 	(
  	write '( 	; name price quantity
 			("gansito" 18 20)
-			("pinguino" 15 20)
+			("pinguinos" 15 20)
 			("coca" 20 20)
 			("manzanita" 20 20)
 			("agua" 15 20)
@@ -98,7 +100,7 @@
 		    	("gansito" (1 1 1 5 10))
 		    	("pinguinos" (1 1 1 5 10))
 		    	("fritos" (1 1 1 5 10))
-		    	("frescas" (1 1 1 5 10))
+		    	("fresca" (1 1 1 5 10))
 		)
 	TRANSACTIONS_INVENTORY
 	)
@@ -107,16 +109,28 @@
 
 
 (define (update-money index value)
-  (set! deposit (reconstruct deposit index value))
+  (set! deposit (reconstruct-deposit deposit index value))
 )
 
-(define (reconstruct datos index value)
+(define (update-inventory index value)
+  (set! inventory (reconstruct-inventory inventory index value))
+)
+
+(define (reconstruct-deposit datos index value)
     (cond
      [(null? datos) '()]
      [(eq? index (caar datos)) (append (list (list (caar datos) (+ (cadar datos) value))) (cdr datos))]
-     [else (append (list (car datos)) (reconstruct (cdr datos) index value)) ]
+     [else (append (list (car datos)) (reconstruct-deposit (cdr datos) index value)) ]
     )
 )
+
+(define (reconstruct-inventory datos index value)
+      (cond
+       [(null? datos) '()]
+       [(eq? index (caar datos)) (append (list (list (caar datos) (cadar datos) (+ (caddar datos) value))) (cdr datos))]
+       [else (append (list (car datos)) (reconstruct-inventory (cdr datos) index value)) ]
+      )
+  )
 
 (define (destroy-product-list)
   (delete-file (build-path (current-directory) "db" "product-list"))
@@ -139,7 +153,11 @@
   (command-line
     #:program "vending machine"
 
-    #:usage-help "Simulation of a vending machine. If ran without flags it will generate a set of automatic data to test the machine."
+    #:usage-help "Simulation of a vending machine. If ran with the -s flag it will run a simulation to test the machine."
+
+    #:once-any
+    [("-s" "--simulation") "This will run a simulation with default data.\n"
+                     (set-simulation #t)]
 
     #:once-each
     [("-i" "--inventory") INVENTORY

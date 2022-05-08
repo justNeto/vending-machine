@@ -1,24 +1,24 @@
 ;;#!/usr/bin/racket -- linux only
-#lang racket
-
-(require "db/helper.rkt") ;; Creates the data and passes the correct values to this file
-
-;;
+#lang racket (require "db/helper.rkt") ;; Creates the data and passes the correct values to this file
 ;; machine.rkt runs helper.rkt and manages the logic after receiving the data that will be use for the machine
 ;; updates of the db's (inventory and money-deposit) are done by writing files in the system and then reading them.
 ;; in helper.rkt the logic for update and reading is implemented
 ;;
 
-; ;; TODO: create handlers for transaction file
-; (define (start-transactions inventory transactions deposit)
-;   transactions
-; )
+(define (start-transactions inventory transactions)
+  ;; get product in inventory and confirm it exist
+  (cond
+    [(null? transactions) #t ]
+    [(product-exist? inventory (car transactions)) (start-transactions inventory (cdr transactions)) ] ;; executes the transaction
+    [else #f]
+  )
+)
 
 (define (start-transaction inventory transaction)
   ;; get product in inventory and confirm it exist
   (cond
-	[(product-exist? inventory transaction) #t ] ;; executes the transaction
-	[else #f]
+    [(product-exist? inventory transaction)  #t ] ;; executes the transaction
+    [else #f]
   )
 )
 
@@ -28,7 +28,7 @@
   (cond
     ;; if inventory null then all inventory checked, if compute-transaction is false then the transaction is not valid, so returns false
     [(null? inventory) #f]
-    [(and (equal? (caar inventory) (car transaction)) (compute-transaction (car inventory) transaction)) #t ]
+    [(and (and (equal? (caar inventory) (car transaction)) (> (caddar inventory) 0)) (compute-transaction (car inventory) transaction)) (update-inventory (caar inventory) -1) #t ]
     [else (product-exist? (cdr inventory) transaction) ]
   )
 )
@@ -109,11 +109,7 @@
   (update-money coin -1)
 )
 
-;; Update inventory according to the transaction result.
-
-;; Any update function should has access to global variables inventory, transactions and deposit to update the info. input data will be data to change inside the update functions. Update writes and reads data from the system.
-
-;; start of the runtime code
+; ;; Start of runtime code
 "::----- { Start runtime data } -----::"
 (cln)
 " :: --- Before transaction "
@@ -127,17 +123,32 @@ deposit
 " :: -  Transaction  - :: "
 transaction
 (cln)
+" :: -  Transactions  - :: "
+transactions
+(cln)
 
 ;; If transaction happened then return true. Else false. If true, save the data. If not true, retrieve the saved data
 (make-copy-inventory)
 (make-copy-deposit)
 
-; (start-transaction inventory transaction)
+;; If a single transaction
 (cond
   [(start-transaction inventory transaction) (write-files-db) "::- [ Transaction status: completed ]"]
-  [else (retrieve-copies) "::-a [ Transaction status: not completed ]" ]
+  [else (retrieve-copies) "::- [ Transaction status: not completed ]" ]
 )
-; (start-transaction inventory transaction)
+
+(make-copy-inventory)
+(make-copy-deposit)
+
+;; If multiple transactions
+(cond
+  [(list? (car transactions))
+   (cond
+     [(start-transactions inventory transactions) (write-files-db) "::- [ Transactions status: all completed completed ]"]
+     [else (retrieve-copies) "::- [ Transaction status: some transactions might have not completed ]"]
+   )
+  ]
+)
 
 (cln)
 " :: --- After transaction "
