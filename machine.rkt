@@ -1,6 +1,6 @@
 ;;#!/usr/bin/racket -- linux only
 #lang racket (require "db/helper.rkt") ;; Creates the data and passes the correct values to this file
-;; machine.rkt runs helper.rkt and manages the logic after receiving the data that will be use for the machine
+
 ;; updates of the db's (inventory and money-deposit) are done by writing files in the system and then reading them.
 ;; in helper.rkt the logic for update and reading is implemented
 ;;
@@ -141,14 +141,14 @@ transactions
 (make-copy-deposit)
 
 ;; If multiple transactions
-(cond
-  [(list? (car transactions))
-   (cond
-     [(start-transactions inventory transactions) (write-files-db) "::- [ Transactions status: all completed completed ]"]
-     [else (retrieve-copies) "::- [ Transaction status: some transactions might have not completed ]"]
-   )
-  ]
-)
+; (cond
+;   [(list? (car transactions))
+;    (cond
+;      [(start-transactions inventory transactions) (write-files-db) "::- [ Transactions status: all completed completed ]"]
+;      [else (retrieve-copies) "::- [ Transaction status: some transactions might have not completed ]"]
+;    )
+;   ]
+; )
 
 (cln)
 " :: --- After transaction "

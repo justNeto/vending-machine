@@ -30,7 +30,7 @@
 (define set-deposit (make-parameter #f))
 (define set-transaction (make-parameter #f))
 (define set-transactions (make-parameter #f))
-(define set-simulation (make-parameter #f))
+(define set-simulation #f)
 
 ;;
 ;; helper.rkt defines the initial data for the simulation of the machine and helper functions to be used through the rest of the program
@@ -157,7 +157,8 @@
 
     #:once-any
     [("-s" "--simulation") "This will run a simulation with default data.\n"
-                     (set-simulation #t)]
+                     (set! set-simulation #t)]
+
 
     #:once-each
     [("-i" "--inventory") INVENTORY
@@ -192,11 +193,11 @@
 
 ;; [get-inventory function]
 ;; Helper function that handles user input for inventory
-(define (get-inventory inv)
+
+(define (set-default-inventory)
+  (print "::-- [Inventory not selected, using default inventory]")
   (cond
-    [(boolean? inv) (print "::-- [Inventory not selected, using default inventory]")
-	(cond
-	  [(not (file-exists? (build-path (current-directory) "db" "product-list"))) (create-product-list)
+    [(not (file-exists? (build-path (current-directory) "db" "product-list"))) (create-product-list)
 		(cln)
 		(print "::-- [List of products created]")
 		(cln)
@@ -204,8 +205,9 @@
 		(set! inventory (read READ_INVENTORY))
 		(set! path-to-inventory (build-path (current-directory) "db" "product-list"))
 		(cln)
-	  ]
-  	  [(file-exists? (build-path (current-directory) "db" "product-list"))
+    ]
+
+    [(file-exists? (build-path (current-directory) "db" "product-list"))
 		(cln)
 	  	(print "::-- [The list of available products already exists]")
 		(cln)
@@ -213,13 +215,14 @@
 		(set! inventory (read READ_INVENTORY))
 		(set! path-to-inventory (build-path (current-directory) "db" "product-list"))
 		(cln)
-	  ]
-	)
     ]
+  )
+)
 
-    [(string? inv) (print "::-- [Searching for custom inventory file]")
-     (cond
-       [(and (file-exists? (build-path (current-directory) inv)) (not(file-exists? (build-path (current-directory) "db" "product-list"))) )
+(define (get-inventory inv)
+  (print "::-- [Searching for custom inventory file]")
+  (cond
+    [(and (file-exists? (build-path (current-directory) inv)) (not(file-exists? (build-path (current-directory) "db" "product-list"))) )
 		(cln)
 		(print "::-- [File exists. Using it as list of products]")
 		(cln)
@@ -227,8 +230,8 @@
 		(set! inventory (read READ_INVENTORY))
 		(set! path-to-inventory (build-path (current-directory) inv))
 		(cln)
-       ]
-       [(and (file-exists? (build-path (current-directory) inv)) (file-exists? (build-path (current-directory) "db" "product-list")) )
+    ]
+    [(and (file-exists? (build-path (current-directory) inv)) (file-exists? (build-path (current-directory) "db" "product-list")) )
 		(cln)
 		(print "::-- [File exists. Using it as list of products]")
 		(cln)
@@ -237,20 +240,17 @@
 		(set! inventory (read READ_INVENTORY))
 		(set! path-to-inventory (build-path (current-directory) inv))
 		(cln)
-       ]
-       [else (cln) "::-- [Error. File does not exists]"]
-     )
     ]
+    [else (cln) "::-- [Error. File does not exists]"]
   )
 )
 
 ;; [get-deposit function]
 ;; Helper function that handles user input for deposit
-(define (get-deposit dep)
-  (cond
-    [(boolean? dep) (print "::-- [Money deposit not selected, using default inventory]")
-	(cond
-	  [(not (file-exists? (build-path (current-directory) "db" "money-deposit")))
+(define (set-default-deposit)
+     (print "::-- [Money deposit not selected, using default inventory]")
+     (cond
+       [(not (file-exists? (build-path (current-directory) "db" "money-deposit")))
 		(cln)
 	   	(create-money-deposit) (print "::-- [Money deposit created]")
 		(cln)
@@ -259,8 +259,8 @@
 		(set! deposit (set-bubble deposit))
 		(set! path-to-deposit (build-path (current-directory) "db" "money-deposit"))
 		(cln)
-	  ]
-  	  [(file-exists? (build-path (current-directory) "db" "money-deposit"))
+       ]
+       [(file-exists? (build-path (current-directory) "db" "money-deposit"))
 		(cln)
 	   	(print "::-- [The money deposit already exists]")
 		(cln)
@@ -269,11 +269,12 @@
 		(set! deposit (set-bubble deposit))
 		(set! path-to-deposit (build-path (current-directory) "db" "money-deposit"))
 		(cln)
-	  ]
-	)
-    ]
+       ]
+    )
+)
 
-    [(string? dep) (print "::-- [Searching for custom deposit file]")
+(define (get-deposit dep)
+     (print "::-- [Searching for custom deposit file]")
      (cond
        [(and (file-exists? (build-path (current-directory) dep)) (not(file-exists? (build-path (current-directory) "db" "money-deposit"))) )
 		(cln)
@@ -298,46 +299,44 @@
        ]
        [else (cln) "::-- [Error. File does not exists]"]
      )
-    ]
-  )
 )
 
 ;; [get-transaction function]
 ;; Helper function that handles passing a single transaction file
-(define (get-transaction tran)
+(define (set-default-transaction)
+  (print "::-- [Transaction not selected, using a default transaction]")
   (cond
-    [(boolean? tran) (print "::-- [Transaction not selected, using a default transaction]")
-	(cond
-	  [(not (file-exists? (build-path (current-directory) "db" "test-transaction"))) (create-transaction-test)
+    [(not (file-exists? (build-path (current-directory) "db" "test-transaction"))) (create-transaction-test)
 		(cln)
 		(print "::-- [Transaction created]")
 		(cln)
 		(define READ_TRANSACTION (open-input-file (build-path (current-directory) "db" "test-transaction")))
 		(set! transaction (read READ_TRANSACTION))
 		(cln)
-	  ]
-  	  [(file-exists? (build-path (current-directory) "db" "test-transaction"))
+    ]
+    [(file-exists? (build-path (current-directory) "db" "test-transaction"))
 		(cln)
 	  	(print "::-- [The transaction file already exists]")
 		(cln)
 		(define READ_TRANSACTION (open-input-file (build-path (current-directory) "db" "test-transaction")))
 		(set! transaction (read READ_TRANSACTION))
 		(cln)
-	  ]
-	)
     ]
+  )
+)
 
-    [(string? tran) (print "::-- [Searching for custom transaction file]")
-     (cond
-       [(and (file-exists? (build-path (current-directory) tran)) (not(file-exists? (build-path (current-directory) "db" "test-transaction"))) ) ; if exist and test use it
+(define (get-transaction tran)
+  (print "::-- [Searching for custom transaction file]")
+  (cond
+    [(and (file-exists? (build-path (current-directory) tran)) (not(file-exists? (build-path (current-directory) "db" "test-transaction"))) ) ; if exist and test use it
 		(cln)
 		(print "::-- [File exists. Using it as test transaction]")
 		(cln)
 		(define READ_TRANSACTION (open-input-file (build-path (current-directory) tran)))
 		(set! transaction (read READ_TRANSACTION))
 		(cln)
-       ]
-       [(and (file-exists? (build-path (current-directory) tran)) (file-exists? (build-path (current-directory) "db" "test-transaction")) ) ; if exist and test too deletes test
+    ]
+    [(and (file-exists? (build-path (current-directory) tran)) (file-exists? (build-path (current-directory) "db" "test-transaction")) ) ; if exist and test too deletes test
 		(cln)
 		(print "::-- [File exists. Using it as test transaction]")
 		(cln)
@@ -345,50 +344,47 @@
 		(define READ_TRANSACTION (open-input-file (build-path (current-directory) tran)))
 		(set! transaction (read READ_TRANSACTION))
 		(cln)
-       ]
-       [else (cln) "::-- [Error. File does not exists]"]
-     )
     ]
+    [else (cln) "::-- [Error. File does not exists]"]
   )
 )
 
-
 ;; [get-transaction function]
 ;; Helper function that handles passing a single transaction file
-(define (get-transactions tran)
+(define (set-default-transactions)
+  (print "::-- [Transactions not selected, using a default transactions]")
   (cond
-    [(boolean? tran) (print "::-- [Transactions not selected, using a default transactions]")
-	(cond
-	  [(not (file-exists? (build-path (current-directory) "db" "test-transactions"))) (create-transactions-test)
+    [(not (file-exists? (build-path (current-directory) "db" "test-transactions"))) (create-transactions-test)
 		(cln)
 		(print "::-- [Transactions created]")
 		(cln)
 		(define READ_TRANSACTIONS (open-input-file (build-path (current-directory) "db" "test-transactions")))
 		(set! transactions (read READ_TRANSACTIONS))
 		(cln)
-	  ]
-  	  [(file-exists? (build-path (current-directory) "db" "test-transactions"))
+    ]
+    [(file-exists? (build-path (current-directory) "db" "test-transactions"))
 		(cln)
 	  	(print "::-- [The transactions file already exists]")
 		(cln)
 		(define READ_TRANSACTIONS (open-input-file (build-path (current-directory) "db" "test-transactions")))
 		(set! transactions (read READ_TRANSACTIONS))
 		(cln)
-	  ]
-	)
     ]
+  )
+)
 
-    [(string? tran) (print "::-- [Searching for custom transactions file]")
-     (cond
-       [(and (file-exists? (build-path (current-directory) tran)) (not(file-exists? (build-path (current-directory) "db" "test-transactions"))) ) ; if exist and test use it
+(define (get-transactions tran)
+  (print "::-- [Searching for custom transactions file]")
+  (cond
+    [(and (file-exists? (build-path (current-directory) tran)) (not(file-exists? (build-path (current-directory) "db" "test-transactions"))) ) ; if exist and test use it
 		(cln)
 		(print "::-- [File exists. Using it as test transactions]")
 		(cln)
 		(define READ_TRANSACTIONS (open-input-file (build-path (current-directory) tran)))
 		(set! transactions (read READ_TRANSACTIONS))
 		(cln)
-       ]
-       [(and (file-exists? (build-path (current-directory) tran)) (file-exists? (build-path (current-directory) "db" "test-transactions")) ) ; if exist and test too deletes test
+    ]
+    [(and (file-exists? (build-path (current-directory) tran)) (file-exists? (build-path (current-directory) "db" "test-transactions")) ) ; if exist and test too deletes test
 		(cln)
 		(print "::-- [File exists. Using it as test transactions]")
 		(cln)
@@ -396,12 +392,11 @@
 		(define READ_TRANSACTIONS (open-input-file (build-path (current-directory) tran)))
 		(set! transactions (read READ_TRANSACTIONS))
 		(cln)
-       ]
-       [else (cln) "::-- [Error. File does not exists]"]
-     )
     ]
+    [else (cln) "::-- [Error. File does not exists]"]
   )
 )
+
 
 (define (read-paths)
   (define PATH_TO_INVENTORY (open-input-file (build-path (current-directory) "db" "tmp" "inv-path")))
@@ -541,12 +536,20 @@
 ;; Execution of setup: creates inventory
 "::- [ Set up initial data ] -::"
 (cln)
-(get-inventory (set-inventory))
-(get-deposit (set-deposit))
-(get-transaction (set-transaction))
-(get-transactions (set-transactions))
+
+(cond
+  [(eq? set-simulation #t) (set-default-inventory) (set-default-deposit) (set-default-transaction) ]
+  ;; (set-default-transactions)
+  [(eq? set-simulation #f) (get-inventory (set-inventory)) (get-deposit (set-deposit)) (get-transaction (set-transaction)) (get-transactions (set-transactions))]
+)
+
+; (get-inventory (set-inventory))
+; (get-deposit (set-deposit))
+; (get-transaction (set-transaction))
+; (get-transactions (set-transactions))S
+
 (set-dep-path)
 (set-inv-path)
-
+; (cln)
 "::- [ End setting up data ] -::"
 (cln)
