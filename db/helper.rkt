@@ -10,6 +10,7 @@
 (provide write-files-db)
 (provide retrieve-copies)
 
+;; Provide to main module the actual data structure for
 (provide inventory)
 (provide deposit)
 (provide transaction)
@@ -17,7 +18,11 @@
 (provide path-to-inventory)
 (provide path-to-deposit)
 
-;; Define global variables and parameters
+;; Provide to main module control variables for interface
+(provide trn-set)
+(provide trns-set)
+
+;; Define global variables
 (define inventory null)
 (define deposit null)
 (define transaction null)
@@ -25,12 +30,19 @@
 (define path-to-inventory null)
 (define path-to-deposit null)
 
+;; Boolean control variables to check if file detected or not
+(define inv-set #f)
+(define dep-set #f)
+(define trn-set #f)
+(define trns-set #f)
+(define del-data #f)
+(define set-simulation #f)
+
 ;; Define parameters for command-line parser
 (define set-inventory (make-parameter #f))
 (define set-deposit (make-parameter #f))
 (define set-transaction (make-parameter #f))
 (define set-transactions (make-parameter #f))
-(define set-simulation #f)
 
 ;;
 ;; helper.rkt defines the initial data for the simulation of the machine and helper functions to be used through the rest of the program
@@ -38,6 +50,25 @@
 
 ;; Define the start of a new line
 (define (cln) (fprintf (current-output-port) "~n"))
+
+;; Read paths
+(define (read-paths)
+  (define PATH_TO_INVENTORY (open-input-file (build-path (current-directory) "db" "tmp" "inv-path")))
+  (set! path-to-inventory (string->path (read PATH_TO_INVENTORY)))
+  (define PATH_TO_DEPOSIT (open-input-file (build-path (current-directory) "db" "tmp" "dep-path")))
+  (set! path-to-deposit (string->path(read PATH_TO_DEPOSIT)))
+)
+
+;; Deletes inventory
+(define (reset-data)
+  (read-paths)
+  (cond
+    [(file-exists? path-to-inventory) (delete-file path-to-inventory) ]
+  )
+  (cond
+    [(file-exists? path-to-deposit) (delete-file path-to-deposit) ]
+  )
+)
 
 ;; Creates the [product-list] with entries
 ;; product-list ::=(([entry])([entry]))that will be used in the automata
@@ -163,28 +194,33 @@
     #:once-each
     [("-i" "--inventory") INVENTORY
                      "File with initial product inventory for the machine. Format list: '( (string::product int::price int::quantity) (...) )\n"
+		     (set! inv-set #t)
                      (set-inventory INVENTORY)]
 
 
     [("-d" "--deposit") DEPOSIT
                      "File with initial money deposit for the machine. Format list: '( (int::value int::quantity) (...) )\n"
+		     (set! dep-set #t)
                      (set-deposit DEPOSIT)]
 
 
     #:multi
     [("-t" "--transaction") TRANSACTION
-                     "File with a transaction. Format list: '( string::product (int::money int::money int::money ...) ) "
+                     "File with a transaction. Format list: '( string::product (int::money int::money int::money ...) )\n"
+		     (set! trn-set #t)
                      (set-transaction TRANSACTION)]
 
 
     [("-f" "--file-of-transactions") FILE-TRANSACTIONS
-                     "File with a list of transactions. Format list: '( (transaction) (transaction) (...) ) "
+                     "File with a list of transactions. Format list: '( (transaction) (transaction) (...) )\n"
+		     (set! trns-set #t)
                      (set-transactions FILE-TRANSACTIONS)]
 
 
     [("-r" "--reset-inventory-deposit")
-     			"Deletes current path-to-inventory and path-to-deposit. Use with caution. Do not use if you are using custom files."
-                     (delete-inventory-deposit)]
+     		     "Deletes current path-to-inventory and path-to-deposit. Use with caution. Do not use if you are using custom files, as they will be deleted. In case you want to delete them, keep a initial backup for them.\n"
+                     (set! del-data #t)
+                     (reset-data)]
 
 
     #:args () (void)
@@ -398,12 +434,6 @@
 )
 
 
-(define (read-paths)
-  (define PATH_TO_INVENTORY (open-input-file (build-path (current-directory) "db" "tmp" "inv-path")))
-  (set! path-to-inventory (string->path (read PATH_TO_INVENTORY)))
-  (define PATH_TO_DEPOSIT (open-input-file (build-path (current-directory) "db" "tmp" "dep-path")))
-  (set! path-to-deposit (string->path(read PATH_TO_DEPOSIT)))
-)
 
 (define (set-inv-path)
   (cond
@@ -484,17 +514,6 @@
 	(close-output-port UPDATE_DEPOSIT)
 )
 
-(define (delete-inventory-deposit)
-  (read-paths)
-
-  (cond
-    [(file-exists? path-to-inventory) (delete-file path-to-inventory) ]
-  )
-
-  (cond
-    [(file-exists? path-to-deposit) (delete-file path-to-deposit) ]
-  )
-)
 
 (define (retrieve-copies)
 
@@ -536,20 +555,34 @@
 ;; Execution of setup: creates inventory
 "::- [ Set up initial data ] -::"
 (cln)
-
 (cond
-  [(eq? set-simulation #t) (set-default-inventory) (set-default-deposit) (set-default-transaction) ]
-  ;; (set-default-transactions)
-  [(eq? set-simulation #f) (get-inventory (set-inventory)) (get-deposit (set-deposit)) (get-transaction (set-transaction)) (get-transactions (set-transactions))]
-)
+  [(eq? del-data #t) (print "::- [ DELETING VENDING MACHINE DATA ]") (exit)]
+  [(eq? set-simulation #t) (set-default-inventory) (set-default-deposit) (set-default-transaction) (set-default-transactions)]
+  [(eq? set-simulation #f) (print "::- [ Simulation not set. Using custom user data ]" )
+   (cln)
+   (cond
+     [(eq? inv-set #t) (get-inventory(set-inventory))]
+     [else (print "::- [ Inventory not set. Ending program ]") (exit)]
+   )
 
-; (get-inventory (set-inventory))
-; (get-deposit (set-deposit))
-; (get-transaction (set-transaction))
-; (get-transactions (set-transactions))S
+   (cln)
+   (cond
+     [(eq? dep-set #t) (get-deposit(set-deposit))]
+     [else (print "::- [ Deposit not set. Ending program ]") (exit) ]
+   )
+   (cln)
+
+   (cond
+     [(and (eq? trns-set #t) (eq? trn-set #t)) (get-transaction(set-transaction)) (get-transactions(set-transactions)) "::- [ Using both transaction and transactions ]"]
+     [(and (eq? trns-set #t) (eq? trn-set #f)) (get-transactions(set-transactions)) "::- [ Using only default transactions ]"]
+     [(and (eq? trns-set #f) (eq? trn-set #t)) (get-transaction(set-transaction)) "::- [ Using only default transaction ]"]
+     [else (print "::- [ Neither transaction nor transactions set. Ending program ]") (exit)]
+   )
+  ] ;; expecting data
+  (cln)
+)
 
 (set-dep-path)
 (set-inv-path)
-; (cln)
 "::- [ End setting up data ] -::"
 (cln)

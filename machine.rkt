@@ -1,5 +1,6 @@
 ;;#!/usr/bin/racket -- linux only
-#lang racket (require "db/helper.rkt") ;; Creates the data and passes the correct values to this file
+#lang racket
+(require "db/helper.rkt") ;; Creates the data and passes the correct values to this file
 
 ;; updates of the db's (inventory and money-deposit) are done by writing files in the system and then reading them.
 ;; in helper.rkt the logic for update and reading is implemented
@@ -109,7 +110,7 @@
   (update-money coin -1)
 )
 
-; ;; Start of runtime code
+;; Start of runtime code
 "::----- { Start runtime data } -----::"
 (cln)
 " :: --- Before transaction "
@@ -127,28 +128,36 @@ transaction
 transactions
 (cln)
 
-;; If transaction happened then return true. Else false. If true, save the data. If not true, retrieve the saved data
 (make-copy-inventory)
 (make-copy-deposit)
 
-;; If a single transaction
+;; Conditions to make a transaction
 (cond
-  [(start-transaction inventory transaction) (write-files-db) "::- [ Transaction status: completed ]"]
-  [else (retrieve-copies) "::- [ Transaction status: not completed ]" ]
+     [(and (eq? trns-set #t) (eq? trn-set #t))
+      (cond
+	[(start-transaction inventory transaction) (write-files-db) ":: [ Transaction status: completed ]" ] ; if both transactions then
+	[else (retrieve-copies) "::- [ Transaction status: not completed ]" (exit)]
+      )
+
+      (cond
+	[(start-transactions inventory transactions) (write-files-db) ":: [ Transactions status: completed ]" ] ; if both transactions then
+	[else (retrieve-copies) "::- [ Transactions status: not completed ]" (exit)]
+      )
+     ]
+     [(and (eq? trn-set #t)(eq? trns-set #f))
+      (cond
+	[(start-transaction inventory transaction) (write-files-db) ":: [ Transaction status: completed ]" ] ; if only transaction
+	[else (retrieve-copies) "::- [ Transaction status: not completed ]" (exit)]
+      )
+     ]
+     [else
+      (cond
+	[(start-transactions inventory transactions) (write-files-db) ":: [ Transactions status: completed ]" ] ; if both transactions then
+	[else (retrieve-copies) "::- [ Transactions status: not completed ]" (exit)]
+      )
+     ]
+
 )
-
-(make-copy-inventory)
-(make-copy-deposit)
-
-;; If multiple transactions
-; (cond
-;   [(list? (car transactions))
-;    (cond
-;      [(start-transactions inventory transactions) (write-files-db) "::- [ Transactions status: all completed completed ]"]
-;      [else (retrieve-copies) "::- [ Transaction status: some transactions might have not completed ]"]
-;    )
-;   ]
-; )
 
 (cln)
 " :: --- After transaction "
