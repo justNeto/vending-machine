@@ -3,18 +3,27 @@
 
 ;; Provided packages to any other scripts
 (provide cln)
-(provide update-money)
-(provide update-inventory)
 (provide make-copy-deposit)
 (provide make-copy-inventory)
 (provide write-files-db)
 (provide retrieve-copies)
+
+;; Provide for money deposit
+(provide almost-full-coin)
+(provide almost-empty-coin)
+(provide get-space)
+(provide update-coin-won)
+(provide reset-coin-won)
+(provide update-money)
+(provide update-inventory)
 
 ;; Provide to main module the actual data structure for
 (provide inventory)
 (provide deposit)
 (provide transaction)
 (provide transactions)
+(provide coin-won)
+(provide max-deposit)
 (provide path-to-inventory)
 (provide path-to-deposit)
 
@@ -37,6 +46,10 @@
 (define trns-set #f)
 (define del-data #f)
 (define set-simulation #f)
+
+;; Static data that the machine will use
+(define coin-won '((50 0)(20 0)(10 0)(5 0)(2 0)(1 0)))
+(define max-deposit 50) ;; max amount of space for a coin of any denomination
 
 ;; Define parameters for command-line parser
 (define set-inventory (make-parameter #f))
@@ -138,6 +151,13 @@
 	(close-output-port TRANSACTIONS_INVENTORY)
 )
 
+(define (update-coin-won index value)
+  (set! coin-won (reconstruct-deposit coin-won index value))
+)
+
+(define (reset-coin-won)
+  (set! coin-won '((50 0)(20 0)(10 0)(5 0)(2 0)(1 0)))
+)
 
 (define (update-money index value)
   (set! deposit (reconstruct-deposit deposit index value))
@@ -445,7 +465,7 @@
 	)
 	(close-output-port PATH_INVENTORY)
     ]
-    [else "Inventory path already set"]
+    [else "::- [ Inventory path already set ]"]
   )
 )
 
@@ -459,7 +479,7 @@
 	)
 	(close-output-port PATH_DEPOSIT)
     ]
-    [else "Deposit path already set"]
+    [else "::- [ Deposit path already set ]"]
   )
 )
 
@@ -552,6 +572,61 @@
   (bubble-sort (length lts) lts)
 )
 
+;; Check data from the money deposit
+(define (get-space index)
+  (get-coin index deposit)
+)
+
+(define (get-coin index coin-list)
+  (cond
+    [(eq? index (caar coin-list)) (cadar coin-list)]
+    [else (get-coin index (cdr coin-list))]
+  )
+)
+
+(define (almost-full-coin)
+  (cond
+    [(> (get-space 1) (- max-deposit 10)) (print "The deposit for coins of 1 is almost full, with: ") (print (get-space 1)) ] ;; if almost full
+  )
+  (cond
+    [(> (get-space 2) (- max-deposit 10)) (print "The deposit for coins of 2 is almost full, with: ") (print (get-space 2)) ] ;; if almost full
+  )
+  (cond
+    [(> (get-space 5) (- max-deposit 10)) (print "The deposit for coins of 5 is almost full, with: ") (print (get-space 5)) ] ;; if almost full
+  )
+  (cond
+    [(> (get-space 10) (- max-deposit 10)) (print "The deposit for coins of 10 is almost full, with: ") (print (get-space 10)) ] ;; if almost full
+  )
+  (cond
+    [(> (get-space 20) (- max-deposit 10)) (print "The deposit for coins of 20 is almost full, with: ") (print (get-space 20)) ] ;; if almost full
+  )
+  (cond
+    [(> (get-space 50) (- max-deposit 10)) (print "The deposit for coins of 50 is almost full, with: ") (print (get-space 50)) ] ;; if almost full
+  )
+)
+
+
+(define (almost-empty-coin)
+  (cond
+    [(< (get-space 1) 10) (print "The deposit for coins of 1 is almost empty, with: ") (print (get-space 1)) ] ;; if almost empty
+  )
+  (cond
+    [(< (get-space 2) 10) (print "The deposit for coins of 2 is almost empty, with: ") (print (get-space 2)) ] ;; if almost empty
+  )
+  (cond
+    [(< (get-space 5) 10) (print "The deposit for coins of 5 is almost empty, with: ") (print (get-space 5)) ] ;; if almost empty
+  )
+  (cond
+    [(< (get-space 10) 10) (print "The deposit for coins of 10 is almost empty, with: ") (print (get-space 10)) ] ;; if almost empty
+  )
+  (cond
+    [(< (get-space 20) 10) (print "The deposit for coins of 20 is almost empty, with: ") (print (get-space 20)) ] ;; if almost empty
+  )
+  (cond
+    [(< (get-space 50) 10) (print "The deposit for coins of 50 is almost empty, with: ") (print (get-space 50)) ] ;; if almost empty
+  )
+)
+
 ;; Execution of setup: creates inventory
 "::- [ Set up initial data ] -::"
 (cln)
@@ -582,7 +657,6 @@
   (cln)
 )
 
-(cln)
 (set-dep-path)
 (set-inv-path)
 (cln)

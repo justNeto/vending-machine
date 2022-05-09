@@ -55,14 +55,12 @@
     ;; If transactions not empty yet, then continue to add up the transactions inside the function
     [(not(null? transactions)) (validate (cdr transactions) final-state (+ current-state (car transactions)) ) ]
 
-    ;; [[[[[[[[[[[---------- Update happens here in function that returns true ----------]]]]]]]]
     ;; validated transactions without fare to return. update inv and money using transactions data
     [(= final-state current-state) #t ]
 
     ;; Change automata only needs to substract the expected value of the product to the value inputed by the user
     ;; For example, if a product costs 50 and user gave 55, then the machine must return 5 (input - cost)
 
-    ;; [[[[[[[[[[[---------- Update happens here in function that returns true ----------]]]]]]]]
     [(> current-state final-state) (fare-automata deposit (- current-state final-state)) ] ;; starts change automata and updates stuff
     ; [(> current-state final-state) (fare-automata current-state final-state) ] ;; starts change automata and updates stuff
 
@@ -73,12 +71,12 @@
 (define (check-currency-in transactions)
   (cond
     [(null? transactions) #t]
-    [(= (car transactions) 1)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 2)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 5)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 10) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 20) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
-    [(= (car transactions) 50) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
+    [(and (< (get-space 1) max-deposit) (= (car transactions) 1)) (update-coin-won 1 1)  (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ] ;; if coin is added to the deposit, also add to a list to register the money won
+    [(and (< (get-space 2) max-deposit) (= (car transactions) 2)) (update-coin-won 2 1) (update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
+    [(and (< (get-space 5) max-deposit) (= (car transactions) 5))  (update-coin-won 5 1)(update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
+    [(and (< (get-space 10) max-deposit) (= (car transactions) 10)) (update-coin-won 10 1)(update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
+    [(and (< (get-space 20) max-deposit) (= (car transactions) 20)) (update-coin-won 20 1)(update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
+    [(and (< (get-space 50) max-deposit) (= (car transactions) 50)) (update-coin-won 50 1)(update-money (car transactions) 1) (check-currency-in (cdr transactions)) ]
     [else #f]
   )
 )
@@ -108,6 +106,7 @@
 ;; Return the coint to user. I.E erase coin from deposit
 (define (return-coin coin)
   (update-money coin -1)
+  (update-coin-won coin -1)
 )
 
 ;; Start of runtime code
@@ -115,15 +114,23 @@
 (cln)
 " :: --- Before transaction "
 (cln)
-" :: - Inventory - :: "
-inventory
+
+" :: -  Coin machine won  - :: "
+coin-won
 (cln)
-" :: -  Deposit  - :: "
-deposit
-(cln)
+
+; " :: - Inventory - :: "
+; inventory
+; (cln)
+
+; " :: -  Deposit  - :: "
+; deposit
+; (cln)
+
 " :: -  Transaction  - :: "
 transaction
 (cln)
+
 " :: -  Transactions  - :: "
 transactions
 (cln)
@@ -169,11 +176,23 @@ transactions
 (cln)
 " :: --- After transaction "
 (cln)
-" :: - Inventory - :: "
-inventory
+
+" :: -  Coin machine won  - :: "
+coin-won
 (cln)
-" :: -  Deposit  - :: "
-deposit
+
+" :: -  Deposit report  - :: "
+(almost-full-coin)
 (cln)
+
+(almost-empty-coin)
+(cln)
+; " :: - Inventory - :: "
+; inventory
+; (cln)
+
+; " :: -  Deposit  - :: "
+; deposit
+; (cln)
 
 "::----- { Stops runtime data } -----::"
