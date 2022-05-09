@@ -183,10 +183,13 @@ coin-won
 
 " :: -  Deposit report  - :: "
 (almost-full-coin)
-(cln)
-
 (almost-empty-coin)
 (cln)
+
+" :: - Inventory report - :: "
+(almost-empty-inventory inventory)
+(cln)
+
 ; " :: - Inventory - :: "
 ; inventory
 ; (cln)

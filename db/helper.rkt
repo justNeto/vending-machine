@@ -8,6 +8,9 @@
 (provide write-files-db)
 (provide retrieve-copies)
 
+;; Provide for inventory
+(provide almost-empty-inventory)
+
 ;; Provide for money deposit
 (provide almost-full-coin)
 (provide almost-empty-coin)
@@ -17,7 +20,7 @@
 (provide update-money)
 (provide update-inventory)
 
-;; Provide to main module the actual data structure for
+;; Provide to main module the actual data structure
 (provide inventory)
 (provide deposit)
 (provide transaction)
@@ -26,6 +29,7 @@
 (provide max-deposit)
 (provide path-to-inventory)
 (provide path-to-deposit)
+
 
 ;; Provide to main module control variables for interface
 (provide trn-set)
@@ -83,14 +87,14 @@
   )
 )
 
-;; Creates the [product-list] with entries
+;; Creates the default inventory to use
 ;; product-list ::=(([entry])([entry]))that will be used in the automata
 ;; [entry] ::= ("nombre" price quantity)
 (define (create-product-list)
     (define INITIAL_INVENTORY (open-output-file (build-path (current-directory) "db" "product-list")))
-	(
- 	write '( 	; name price quantity
-			("gansito" 18 20)
+	(              ; name price quantity
+ 	write '(
+			("gansito" 18 9)
 			("pinguinos" 15 20)
 			("coca" 20 20)
 			("manzanita" 20 20)
@@ -115,9 +119,9 @@
 			(1 20)
 			(2 20)
 			(5 20)
-			(10 20)
+			(10 10)
 			(20 20)
-			(50 20)
+			(50 45)
 		)
 	MONEY_INVENTORY
 	)
@@ -584,46 +588,66 @@
   )
 )
 
-(define (almost-full-coin)
+;; Check data from the inventory
+(define (get-available index)
+  (get-product index inventory)
+)
+
+(define (get-product index inv)
   (cond
-    [(> (get-space 1) (- max-deposit 10)) (print "The deposit for coins of 1 is almost full, with: ") (print (get-space 1)) ] ;; if almost full
-  )
-  (cond
-    [(> (get-space 2) (- max-deposit 10)) (print "The deposit for coins of 2 is almost full, with: ") (print (get-space 2)) ] ;; if almost full
-  )
-  (cond
-    [(> (get-space 5) (- max-deposit 10)) (print "The deposit for coins of 5 is almost full, with: ") (print (get-space 5)) ] ;; if almost full
-  )
-  (cond
-    [(> (get-space 10) (- max-deposit 10)) (print "The deposit for coins of 10 is almost full, with: ") (print (get-space 10)) ] ;; if almost full
-  )
-  (cond
-    [(> (get-space 20) (- max-deposit 10)) (print "The deposit for coins of 20 is almost full, with: ") (print (get-space 20)) ] ;; if almost full
-  )
-  (cond
-    [(> (get-space 50) (- max-deposit 10)) (print "The deposit for coins of 50 is almost full, with: ") (print (get-space 50)) ] ;; if almost full
+    [(eq? index (caar inv)) (caddar inv)]
+    [else (get-product index (cdr inv))]
   )
 )
 
+;; Print inventory info
+(define (almost-empty-inventory inv)
+  (cond
+    [(null? inv) #t]
+    [(< (get-available (caar inv)) 10) (print (caar inv)) (print " is almost empty or empty") (cln)(almost-empty-inventory (cdr inv)) ] ;; if almost full
+  )
+)
+
+;; Print deposit info
+(define (almost-full-coin)
+  (cond
+    [(> (get-space 1) (- max-deposit 10)) (print "The deposit for coins of 1 is almost full or full, with: ") (print (get-space 1)) (cln)] ;; if almost full
+  )
+  (cond
+    [(> (get-space 2) (- max-deposit 10)) (print "The deposit for coins of 2 is almost full or full, with: ") (print (get-space 2)) (cln) ] ;; if almost full
+  )
+  (cond
+    [(> (get-space 5) (- max-deposit 10)) (print "The deposit for coins of 5 is almost full or full, with: ") (print (get-space 5)) (cln)] ;; if almost full
+  )
+  (cond
+    [(> (get-space 10) (- max-deposit 10)) (print "The deposit for coins of 10 is almost full or full, with: ") (print (get-space 10)) (cln)] ;; if almost full
+  )
+  (cond
+    [(> (get-space 20) (- max-deposit 10)) (print "The deposit for coins of 20 is almost full or full, with: ") (print (get-space 20)) (cln)] ;; if almost full
+  )
+  (cond
+    [(> (get-space 50) (- max-deposit 10)) (print "The deposit for coins of 50 is almost full or full, with: ") (print (get-space 50)) (cln)] ;; if almost full
+  )
+)
 
 (define (almost-empty-coin)
   (cond
-    [(< (get-space 1) 10) (print "The deposit for coins of 1 is almost empty, with: ") (print (get-space 1)) ] ;; if almost empty
+    [(< (get-space 1) 10) (print "The deposit for coins of 1 is almost empty or empty, with: ") (print (get-space 1)) (cln)] ;; if almost empty
   )
   (cond
-    [(< (get-space 2) 10) (print "The deposit for coins of 2 is almost empty, with: ") (print (get-space 2)) ] ;; if almost empty
+    [(< (get-space 2) 10) (print "The deposit for coins of 2 is almost empty or empty, with: ") (print (get-space 2)) (cln)] ;; if almost empty
   )
   (cond
-    [(< (get-space 5) 10) (print "The deposit for coins of 5 is almost empty, with: ") (print (get-space 5)) ] ;; if almost empty
+    [(< (get-space 5) 10) (print "The deposit for coins of 5 is almost empty or empty, with: ") (print (get-space 5)) (cln)] ;; if almost empty
   )
   (cond
-    [(< (get-space 10) 10) (print "The deposit for coins of 10 is almost empty, with: ") (print (get-space 10)) ] ;; if almost empty
+    [(< (get-space 10) 10) (print "The deposit for coins of 10 is almost empty or empty, with: ") (print (get-space 10)) (cln)] ;; if almost empty
   )
   (cond
-    [(< (get-space 20) 10) (print "The deposit for coins of 20 is almost empty, with: ") (print (get-space 20)) ] ;; if almost empty
+    [(< (get-space 20) 10) (print "The deposit for coins of 20 is almost empty or empty, with: ") (print (get-space 20)) (cln)] ;; if almost empty
   )
   (cond
-    [(< (get-space 50) 10) (print "The deposit for coins of 50 is almost empty, with: ") (print (get-space 50)) ] ;; if almost empty
+    [(< (get-space 50) 10) (print "The deposit for coins of 50 is almost empty or empty, with: ") (print (get-space 50)) (cln)] ;; if almost empty
   )
 )
 
