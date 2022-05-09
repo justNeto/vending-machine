@@ -128,24 +128,26 @@ transaction
 transactions
 (cln)
 
-(make-copy-inventory)
-(make-copy-deposit)
 
 ;; Conditions to make a transaction
 (cond
-     [(and (eq? trns-set #t) (eq? trn-set #t))
+     [(and (eq? trns-set #t) (eq? trn-set #t)) ;; if using transaction and lists of transactions
+      (make-copy-inventory)
+      (make-copy-deposit)
       (cond
-	[(start-transaction inventory transaction) (write-files-db) (print ":: [ Transaction status: completed ]") ] ; if both transactions then
-	[else (retrieve-copies) (print "::- [ Transaction status: not completed ]") (exit)]
+	[(start-transaction inventory transaction) (print ":: [ Transaction validated ]") ] ;; if transaction ...
+	[else (retrieve-copies) (print "::- [ Transaction status: not validated ]") (exit)]
       )
       (cln)
       (cond
-	[(start-transactions inventory transactions) (write-files-db) (print ":: [ Transactions status: completed ]") ] ; if both transactions then
+	[(start-transactions inventory transactions) (write-files-db) (print ":: [ Transactions status: completed ]") ] ;; ... and transactions are validated then write changes
 	[else (retrieve-copies) (print "::- [ Transactions status: not completed ]") (exit)]
       )
       (cln)
      ]
      [(and (eq? trn-set #t)(eq? trns-set #f))
+      (make-copy-inventory)
+      (make-copy-deposit)
       (cond
 	[(start-transaction inventory transaction) (write-files-db) (print ":: [ Transaction status: completed ]") ] ; if only transaction
 	[else (retrieve-copies) (print "::- [ Transaction status: not completed ]") (exit)]
@@ -153,6 +155,8 @@ transactions
       (cln)
      ]
      [else
+      (make-copy-inventory)
+      (make-copy-deposit)
       (cond
 	[(start-transactions inventory transactions) (write-files-db) (print ":: [ Transactions status: completed ]") ] ; if both transactions then
 	[else (retrieve-copies) (print "::- [ Transactions status: not completed ]") (exit)]
