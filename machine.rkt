@@ -135,26 +135,29 @@ transactions
 (cond
      [(and (eq? trns-set #t) (eq? trn-set #t))
       (cond
-	[(start-transaction inventory transaction) (write-files-db) ":: [ Transaction status: completed ]" ] ; if both transactions then
-	[else (retrieve-copies) "::- [ Transaction status: not completed ]" (exit)]
+	[(start-transaction inventory transaction) (write-files-db) (print ":: [ Transaction status: completed ]") ] ; if both transactions then
+	[else (retrieve-copies) (print "::- [ Transaction status: not completed ]") (exit)]
       )
-
+      (cln)
       (cond
-	[(start-transactions inventory transactions) (write-files-db) ":: [ Transactions status: completed ]" ] ; if both transactions then
-	[else (retrieve-copies) "::- [ Transactions status: not completed ]" (exit)]
+	[(start-transactions inventory transactions) (write-files-db) (print ":: [ Transactions status: completed ]") ] ; if both transactions then
+	[else (retrieve-copies) (print "::- [ Transactions status: not completed ]") (exit)]
       )
+      (cln)
      ]
      [(and (eq? trn-set #t)(eq? trns-set #f))
       (cond
-	[(start-transaction inventory transaction) (write-files-db) ":: [ Transaction status: completed ]" ] ; if only transaction
-	[else (retrieve-copies) "::- [ Transaction status: not completed ]" (exit)]
+	[(start-transaction inventory transaction) (write-files-db) (print ":: [ Transaction status: completed ]") ] ; if only transaction
+	[else (retrieve-copies) (print "::- [ Transaction status: not completed ]") (exit)]
       )
+      (cln)
      ]
      [else
       (cond
-	[(start-transactions inventory transactions) (write-files-db) ":: [ Transactions status: completed ]" ] ; if both transactions then
-	[else (retrieve-copies) "::- [ Transactions status: not completed ]" (exit)]
+	[(start-transactions inventory transactions) (write-files-db) (print ":: [ Transactions status: completed ]") ] ; if both transactions then
+	[else (retrieve-copies) (print "::- [ Transactions status: not completed ]") (exit)]
       )
+      (cln)
      ]
 
 )

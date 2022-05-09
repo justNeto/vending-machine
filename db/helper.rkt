@@ -582,7 +582,9 @@
   (cln)
 )
 
+(cln)
 (set-dep-path)
 (set-inv-path)
+(cln)
 "::- [ End setting up data ] -::"
 (cln)
