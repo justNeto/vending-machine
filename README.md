@@ -33,4 +33,4 @@ product-inventory
 (("coca" 15 10)("agua" 15 12)("manzanita" 7 10))
 ```
 
-This sample files, besides the default generated, can be found in tests directory of this repository.
+These sample files, besides the default generated, can be found in tests directory of this repository.
