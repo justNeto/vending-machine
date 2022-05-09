@@ -26,7 +26,7 @@
 (provide transaction)
 (provide transactions)
 (provide coin-won)
-(provide max-deposit)
+(provide max-deposit) ;; var to determine the max capacity of deposit
 (provide path-to-inventory)
 (provide path-to-deposit)
 
@@ -600,7 +600,7 @@
   )
 )
 
-;; Print inventory info
+;; Print inventory info. If get-available < 10 then is almost empty
 (define (almost-empty-inventory inv)
   (cond
     [(null? inv) #t]
@@ -608,7 +608,7 @@
   )
 )
 
-;; Print deposit info
+;; Print deposit info. If get-space is less than 10, then almos empty. If bigger than 50, empty
 (define (almost-full-coin)
   (cond
     [(> (get-space 1) (- max-deposit 10)) (print "The deposit for coins of 1 is almost full or full, with: ") (print (get-space 1)) (cln)] ;; if almost full
